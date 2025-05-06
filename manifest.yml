@@ -1,0 +1,111 @@
+packages:
+  __APP_PACKAGE__:
+    license: Apache-2.0
+    inputs:
+      environment: $ENVIRONMENT
+      LOG_LEVEL: $LOG_LEVEL_ENV
+      fetchMode: $FETCH_MODE
+      spClientId: $SP_CLIENT_ID
+      spTenantId: $SP_TENANT_ID
+      spCertPassword: $SP_CERT_PASSWORD
+      spCertThumbprint: $SP_CERT_THUMB_PRINT
+      spCertContent: $SP_CERT_CONTENT      
+      supportedTenants: $SUPPORTED_TENANTS
+      ignorePaths: $IGNORE_PATHS
+      apiKeyAdobecom--milo: $ADOBE_COM_MILO_API_KEY
+      apiKeyAdobecom--news: $ADOBE_COM_NEWS_API_KEY
+      apiKeyAdobecom--express-milo: $ADOBE_COM_EXPRESS_MILO_API_KEY
+    actions:
+      __test-action:
+        function: actions/test-action/index.js
+        runtime: 'nodejs:18'
+        inputs:
+          allowedUsers: $ALLOWED_USERS
+        annotations:
+          require-adobe-auth: false
+          final: true
+      __files-status:
+        function: actions/files-status/index.js
+        runtime: 'nodejs:18'
+        inputs:
+          allowedUsers: $ALLOWED_USERS
+        limits:
+          memorySize: 1024
+        annotations:
+          require-adobe-auth: false
+          final: true
+      __gen-index:
+        function: actions/gen-index/index.js
+        runtime: 'nodejs:18'
+        inputs:
+          allowedUsers: $ALLOWED_USERS
+        annotations:
+          require-adobe-auth: false
+          final: true
+      __update-index-crawl-sp:
+        function: actions/update-index-crawl-sp/index.js
+        runtime: 'nodejs:18'
+        limits:
+          timeout: 300000
+        annotations:
+          require-adobe-auth: false
+          final: true
+      __update-index-using-bulkstatus:
+        function: actions/update-index-using-bulkstatus/index.js
+        runtime: 'nodejs:18'
+        limits:
+          timeout: 300000
+        annotations:
+          require-adobe-auth: false
+          final: true
+      __update-index-sched:
+        function: actions/update-index-sched/index.js
+        runtime: 'nodejs:18'
+        limits:
+          timeout: 300000
+        annotations:
+          require-adobe-auth: false
+          final: true
+
+    triggers:
+      updateIndexerTrigger:
+        feed: /whisk.system/alarms/interval
+        inputs:
+          minutes: 10
+
+    rules:
+      updateIndexerTriggerRule:
+        trigger: updateIndexerTrigger
+        action: __update-index-sched
+      
+    sequences:
+      test-action:
+        actions: '__test-action'
+        web-export: raw
+        web: raw
+        annotations:
+          web-custom-options: true
+      files-status:
+        actions: '__files-status'
+        web-export: raw
+        web: raw
+        annotations:
+          web-custom-options: true
+      gen-index:
+        actions: '__gen-index'
+        web-export: raw
+        web: raw
+        annotations:
+          web-custom-options: true
+      update-index-crawl-sp:
+        actions: '__update-index-crawl-sp'
+        web-export: raw
+        web: raw
+        annotations:
+          web-custom-options: true
+      update-index-using-bulkstatus:
+        actions: '__update-index-using-bulkstatus'
+        web-export: raw
+        web: raw
+        annotations:
+          web-custom-options: true
